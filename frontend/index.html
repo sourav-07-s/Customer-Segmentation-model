@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Customer Segmentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="bg-aurora"></div>
+
+<main class="container">
+  <header class="glass header">
+    <div>
+      <span class="chip">RFM · Behavioral analytics</span>
+      <h1 class="title">Customer <span class="gradient">Segmentation</span></h1>
+      <p class="subtitle">
+        Upload a customer CSV with spend, orders and last order date — we score
+        recency, frequency and monetary value and assign each customer to a behavioral segment.
+      </p>
+    </div>
+    <div class="actions">
+     <button id="themeToggle" class="theme-toggle">
+    🌙
+     </button>
+      <input type="file" id="file" accept=".csv,text/csv" hidden />
+      <button class="btn ghost" id="uploadBtn">Upload CSV</button>
+      <button class="btn primary" id="demoBtn">Load demo data</button>
+      <button class="btn outline" id="exportBtn">Export</button>
+    </div>
+  </header>
+
+  <div id="error" class="error glass" hidden></div>
+
+  <section class="kpis">
+    <div class="glass kpi"><span>Customers</span><strong id="kpi-customers">—</strong></div>
+    <div class="glass kpi"><span>Total revenue</span><strong id="kpi-revenue">—</strong></div>
+    <div class="glass kpi"><span>Total orders</span><strong id="kpi-orders">—</strong></div>
+    <div class="glass kpi"><span>Avg order value</span><strong id="kpi-aov">—</strong></div>
+  </section>
+
+  <section class="charts">
+    <div class="glass card chart-card">
+      <div class="card-head">
+        <h2>Segment distribution</h2>
+        <p>Customers and revenue by segment · click a bar to filter</p>
+      </div>
+      <canvas id="barChart" height="280"></canvas>
+    </div>
+    <div class="glass card chart-card">
+      <div class="card-head">
+        <h2>Recency × Spend</h2>
+        <p>Each dot is a customer · bubble size = orders</p>
+      </div>
+      <canvas id="scatter" height="280"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <div class="row-head">
+      <h2>Segments</h2>
+      <button class="pill" id="allBtn">All customers (<span id="allCount">0</span>)</button>
+    </div>
+    <div class="segments" id="segments"></div>
+  </section>
+
+  <section class="glass card">
+    <div class="card-head row">
+      <div>
+        <h2 id="tableTitle">Top customers</h2>
+        <p id="tableSub">Showing 0 customers</p>
+      </div>
+      <input type="search" id="search" placeholder="Search by id, name or email" class="input" />
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th><th>Segment</th>
+            <th class="num">Spend</th><th class="num">Orders</th>
+            <th class="num">Recency</th><th class="num">RFM</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Built with RFM scoring · Required CSV columns: spend/revenue, last order date · optional: id, name, email, orders.
+  </footer>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
