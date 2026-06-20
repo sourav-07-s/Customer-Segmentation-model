@@ -140,7 +140,7 @@ function quintile(sorted, v, invert = false) {
 
 function classify(r, f, m) {
   const fm = (f + m) / 2;
-  if (r >= 4 && fm >= 4) return "Premium";
+  if (r >= 4 && fm >= 4) return "Champions";
   if (r >= 3 && fm >= 4) return "Loyal";
   if (r >= 4 && fm >= 3) return "Potential Loyalist";
   if (r >= 4 && fm <= 2) return "New Customers";
