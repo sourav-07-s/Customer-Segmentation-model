@@ -572,37 +572,188 @@ window.addEventListener("load", () => {
 });
 
 // ---------- Boot ----------
-async function init() {
-  await Promise.all([loadScript(PAPA_URL), loadScript(CHART_URL)]);
+// ---------- Backend Loader ----------
+async function loadBackendData() {
 
-  document.getElementById("uploadBtn").onclick = () =>
-    document.getElementById("file").click();
-  document.getElementById("file").onchange = (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    Papa.parse(f, {
-      header: true,
-      skipEmptyLines: true,
-      dynamicTyping: true,
-      transformHeader: (h) => h.trim().toLowerCase().replace(/\s+/g, "_"),
-      complete: (res) => {
-        if (!res.data.length) return showError("No rows found in CSV.");
-        setData(res.data);
-      },
-      error: (err) => showError(err.message),
-    });
-  };
-  document.getElementById("demoBtn").onclick = () => setData(generateDemo());
-  document.getElementById("exportBtn").onclick = exportCsv;
-  document.getElementById("allBtn").onclick = () => {
-    state.activeSegment = "All";
-    render();
-  };
-  document.getElementById("search").oninput = (e) => {
-    state.query = e.target.value;
-    renderTable();
-  };
+  try {
 
-  setData(generateDemo());
+    const response = await fetch(
+      "http://127.0.0.1:5000/segments"
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to load segments");
+    }
+
+    const data = await response.json();
+
+    const transformed = data.map(c => ({
+
+      customer_id:
+        c.CustomerID,
+
+      name:
+        `Customer ${c.CustomerID}`,
+
+      email:
+        `customer${c.CustomerID}@company.com`,
+
+      orders:
+        Math.max(
+          1,
+          Math.round(
+            Math.exp(c.Frequency) - 1
+          )
+        ),
+
+      total_spend:
+        Math.max(
+          0,
+          Math.round(
+            Math.exp(c.Monetary) - 1
+          )
+        ),
+
+      last_order_date:
+        new Date(
+          Date.now() -
+          c.Recency * 86400000
+        )
+        .toISOString()
+        .slice(0, 10)
+
+    }));
+
+    setData(transformed);
+
+    loadMetrics();
+
+  } catch (err) {
+
+    console.error(err);
+
+    showError(
+      "Backend not connected. Loading demo data."
+    );
+
+    setData(generateDemo());
+
+  }
 }
+
+// ---------- Metrics ----------
+async function loadMetrics() {
+
+  try {
+
+    const response = await fetch(
+      "http://127.0.0.1:5000/metrics"
+    );
+
+    const metrics =
+      await response.json();
+
+    console.log(
+      "Model Metrics",
+      metrics
+    );
+
+  } catch (err) {
+
+    console.error(
+      "Metrics Error",
+      err
+    );
+
+  }
+}
+
+// ---------- Boot ----------
+async function init() {
+
+  await Promise.all([
+    loadScript(PAPA_URL),
+    loadScript(CHART_URL)
+  ]);
+
+  document.getElementById(
+    "uploadBtn"
+  ).onclick = () =>
+    document.getElementById(
+      "file"
+    ).click();
+
+  document.getElementById(
+    "file"
+  ).onchange = (e) => {
+
+    const f = e.target.files[0];
+
+    if (!f) return;
+
+    Papa.parse(f, {
+
+      header: true,
+
+      skipEmptyLines: true,
+
+      dynamicTyping: true,
+
+      transformHeader: (h) =>
+        h.trim()
+         .toLowerCase()
+         .replace(/\s+/g, "_"),
+
+      complete: (res) => {
+
+        if (!res.data.length) {
+          return showError(
+            "No rows found in CSV."
+          );
+        }
+
+        setData(res.data);
+
+      },
+
+      error: (err) =>
+        showError(err.message)
+
+    });
+
+  };
+
+  document.getElementById(
+    "demoBtn"
+  ).onclick = () =>
+    setData(generateDemo());
+
+  document.getElementById(
+    "exportBtn"
+  ).onclick = exportCsv;
+
+  document.getElementById(
+    "allBtn"
+  ).onclick = () => {
+
+    state.activeSegment = "All";
+
+    render();
+
+  };
+
+  document.getElementById(
+    "search"
+  ).oninput = (e) => {
+
+    state.query = e.target.value;
+
+    renderTable();
+
+  };
+
+  // Load ML Results From Flask
+  loadBackendData();
+}
+
 init();

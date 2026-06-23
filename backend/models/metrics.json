@@ -1,0 +1,5 @@
+{
+    "customers": 10872,
+    "best_k": 2,
+    "silhouette_score": 0.3834033018085384
+}
