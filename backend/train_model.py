@@ -21,15 +21,15 @@ csv_path = os.path.join(
     "customer_segmentation_50000_transactions.csv"
 )
 
-# ==============================
+
 # LOAD DATA
-# ==============================
+
 
 df = preprocess_data(csv_path)
 
-# ==============================
+
 # CREATE RFM
-# ==============================
+
 
 print("\nCreating RFM Table...")
 
@@ -64,9 +64,9 @@ rfm.rename(
     inplace=True
 )
 
-# ==============================
+
 # FEATURE ENGINEERING
-# ==============================
+
 
 rfm["Avg_Order_Value"] = (
     rfm["Monetary"] /
@@ -82,9 +82,9 @@ rfm["Monetary"] = np.log1p(
     rfm["Monetary"]
 )
 
-# ==============================
+
 # SCALING
-# ==============================
+
 
 features = rfm[
     [
@@ -101,9 +101,9 @@ scaled_data = scaler.fit_transform(
     features
 )
 
-# ==============================
+
 # AUTO CLUSTER SELECTION
-# ==============================
+
 
 best_k = 2
 best_score = -1
@@ -141,9 +141,9 @@ print(
     f"\nBest K Selected: {best_k}"
 )
 
-# ==============================
+
 # FINAL MODEL
-# ==============================
+
 
 kmeans = KMeans(
     n_clusters=best_k,
@@ -155,9 +155,9 @@ rfm["Cluster"] = kmeans.fit_predict(
     scaled_data
 )
 
-# ==============================
+
 # CLUSTER NAMES
-# ==============================
+
 
 cluster_stats = rfm.groupby(
     "Cluster"
@@ -194,9 +194,9 @@ rfm["Segment"] = (
     .map(segment_names)
 )
 
-# ==============================
+
 # SAVE MODELS
-# ==============================
+
 
 model_dir = os.path.join(
     os.path.dirname(__file__),
@@ -224,9 +224,9 @@ joblib.dump(
     )
 )
 
-# ==============================
+
 # SAVE CSV
-# ==============================
+
 
 rfm.to_csv(
     os.path.join(
@@ -236,9 +236,9 @@ rfm.to_csv(
     index=False
 )
 
-# ==============================
+
 # SAVE METRICS
-# ==============================
+
 
 metrics = {
     "customers":

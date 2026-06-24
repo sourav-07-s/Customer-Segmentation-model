@@ -14,9 +14,8 @@ BASE_DIR = os.path.dirname(
     __file__
 )
 
-# ==========================
 # HOME
-# ==========================
+
 
 @app.route("/")
 def home():
@@ -28,9 +27,9 @@ def home():
     })
 
 
-# ==========================
+
 # SEGMENTS
-# ==========================
+
 
 @app.route("/segments")
 def segments():
@@ -52,9 +51,9 @@ def segments():
     )
 
 
-# ==========================
+
 # METRICS
-# ==========================
+
 
 @app.route("/metrics")
 def metrics():
@@ -75,9 +74,9 @@ def metrics():
     return jsonify(data)
 
 
-# ==========================
+
 # TOP CUSTOMERS
-# ==========================
+
 
 @app.route("/top-customers")
 def top_customers():
@@ -104,9 +103,8 @@ def top_customers():
     )
 
 
-# ==========================
 # RUN
-# ==========================
+
 
 if __name__ == "__main__":
 
