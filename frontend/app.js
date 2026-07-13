@@ -557,7 +557,7 @@ themeBtn.addEventListener("click", () => {
 
   const isLight = document.body.classList.contains("light-mode");
 
-  themeBtn.innerHTML = isLight ? "🌙" : "☀️";
+  themeBtn.innerHTML = isLight ? "☀️" : "🌙";
 
   localStorage.setItem("theme", isLight ? "light" : "dark");
 });
