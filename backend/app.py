@@ -1,60 +1,69 @@
-from flask import Flask
-from flask import jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
-
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 import pandas as pd
 import json
 import os
+from models import Customer
+from database import db
+from models import Customer
 
+
+# Load Environment Variables
+load_dotenv()
+
+
+# Flask App
 app = Flask(__name__)
-
 CORS(app)
 
-BASE_DIR = os.path.dirname(
-    __file__
-)
+# Database Configuration
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+from database import db
+
+db.init_app(app)
+
+# Base Directory
+BASE_DIR = os.path.dirname(__file__)
+
 
 # HOME
-
-
 @app.route("/")
 def home():
-
     return jsonify({
         "status": "running",
-        "project":
-        "Customer Segmentation"
+        "project": "Customer Segmentation"
     })
 
 
-
 # SEGMENTS
-
-
 @app.route("/segments")
 def segments():
 
-    file_path = os.path.join(
-        BASE_DIR,
-        "models",
-        "customer_segments.csv"
-    )
+    customers = Customer.query.all()
 
-    df = pd.read_csv(
-        file_path
-    )
+    data = []
 
-    return jsonify(
-        df.to_dict(
-            orient="records"
-        )
-    )
+    for c in customers:
 
+        data.append({
+            "CustomerID": c.customer_id,
+            "Recency": c.recency,
+            "Frequency": c.frequency,
+            "Monetary": c.monetary,
+            "Avg_Order_Value": c.avg_order_value,
+            "Cluster": c.cluster,
+            "Segment": c.segment
+        })
+
+    return jsonify(data)
 
 
 # METRICS
-
-
 @app.route("/metrics")
 def metrics():
 
@@ -64,51 +73,36 @@ def metrics():
         "metrics.json"
     )
 
-    with open(
-        metrics_file,
-        "r"
-    ) as f:
-
+    with open(metrics_file, "r") as f:
         data = json.load(f)
 
     return jsonify(data)
 
 
-
 # TOP CUSTOMERS
-
-
 @app.route("/top-customers")
 def top_customers():
 
-    file_path = os.path.join(
-        BASE_DIR,
-        "models",
-        "customer_segments.csv"
-    )
+    customers = Customer.query.order_by(
+        Customer.monetary.desc()
+    ).limit(20).all()
 
-    df = pd.read_csv(
-        file_path
-    )
+    data = []
 
-    top = df.sort_values(
-        "Monetary",
-        ascending=False
-    ).head(20)
+    for c in customers:
 
-    return jsonify(
-        top.to_dict(
-            orient="records"
-        )
-    )
+        data.append({
+            "CustomerID": c.customer_id,
+            "Recency": c.recency,
+            "Frequency": c.frequency,
+            "Monetary": c.monetary,
+            "Avg_Order_Value": c.avg_order_value,
+            "Cluster": c.cluster,
+            "Segment": c.segment
+        })
 
+    return jsonify(data)
 
-# RUN
-
-
+# Run App
 if __name__ == "__main__":
-
-    app.run(
-        debug=True,
-        port=5000
-    )
+    app.run(debug=True, port=5000)
