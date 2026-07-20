@@ -628,17 +628,15 @@ async function loadBackendData() {
 
     loadMetrics();
 
-  } catch (err) {
+  }catch (err) {
 
     console.error(err);
 
-    showError(
-      "Backend not connected. Loading demo data."
-    );
+    showError("Failed to load data from database.");
 
-    setData(generateDemo());
+    return;
 
-  }
+}
 }
 
 // ---------- Metrics ----------
@@ -723,10 +721,10 @@ async function init() {
 
   };
 
-  document.getElementById(
+ document.getElementById(
     "demoBtn"
-  ).onclick = () =>
-    setData(generateDemo());
+).onclick = () =>
+    loadBackendData();
 
   document.getElementById(
     "exportBtn"
