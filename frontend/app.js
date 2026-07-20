@@ -288,20 +288,76 @@ function showError(msg) {
 function hideError() {
   document.getElementById("error").hidden = true;
 }
+function animateValue(element, start, end, duration, formatter = (v) => v) {
+
+    let startTime = null;
+
+    function update(currentTime) {
+
+        if (!startTime) startTime = currentTime;
+
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+
+        const value = start + (end - start) * progress;
+
+        element.textContent = formatter(value);
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+
+    }
+
+    requestAnimationFrame(update);
+
+}
 
 function render() {
   const s = state.scored;
   const totalRev = s.reduce((a, c) => a + c.totalSpend, 0);
   const totalOrders = s.reduce((a, c) => a + c.orders, 0);
 
-  document.getElementById("kpi-customers").textContent =
-    s.length.toLocaleString();
-  document.getElementById("kpi-revenue").textContent = fmt(totalRev);
-  document.getElementById("kpi-orders").textContent =
-    totalOrders.toLocaleString();
-  document.getElementById("kpi-aov").textContent = fmt(
+ animateValue(
+    document.getElementById("kpi-customers"),
+    0,
+    s.length,
+    1000,
+    v => Math.round(v).toLocaleString()
+);
+
+animateValue(
+    document.getElementById("kpi-revenue"),
+    0,
+    totalRev,
+    1200,
+    v => fmt(v)
+);
+
+animateValue(
+    document.getElementById("kpi-orders"),
+    0,
+    totalOrders,
+    1000,
+    v => Math.round(v).toLocaleString()
+);
+
+animateValue(
+    document.getElementById("kpi-aov"),
+    0,
     totalOrders ? totalRev / totalOrders : 0,
-  );
+    1200,
+    v => fmt(v)
+);
+document.querySelectorAll(".kpi").forEach((card, index) => {
+
+    card.style.animation = "none";
+
+    card.offsetHeight;
+
+    card.style.animation =
+        `fadeUp .6s ease ${index * 100}ms forwards`;
+
+});
   document.getElementById("allCount").textContent = s.length;
 
   // Segment summary
@@ -332,6 +388,7 @@ function renderSegments(segArr, totalRev) {
     const share = totalRev ? ((revenue / totalRev) * 100).toFixed(1) : "0.0";
     const active = state.activeSegment === seg;
     const btn = document.createElement("button");
+    btn.style.animationDelay = `${wrap.children.length * 80}ms`;
     btn.className = "seg" + (active ? " active" : "");
     btn.innerHTML = `
       <div class="blob" style="background:${meta.color}"></div>
@@ -343,6 +400,11 @@ function renderSegments(segArr, totalRev) {
       </div>
       <div class="seg-count">${count}<small>customers</small></div>
       <div class="seg-rev">${fmt(revenue)} in revenue</div>
+      <div class="seg-progress">
+    <div class="seg-progress-fill"
+         style="width:${share}%; background:${meta.color}">
+    </div>
+</div>
       <p class="seg-desc">${meta.desc}</p>
     `;
     btn.onclick = () => {
@@ -350,11 +412,25 @@ function renderSegments(segArr, totalRev) {
       render();
     };
     wrap.appendChild(btn);
+    const bar = btn.querySelector(".seg-progress-fill");
+
+bar.style.width = "0%";
+
+requestAnimationFrame(() => {
+    bar.style.width = `${share}%`;
+});
   });
 }
 
 function renderBarChart(segArr) {
   const ctx = document.getElementById("barChart");
+  const isLight = document.body.classList.contains("light-mode");
+
+const textColor = isLight ? "#334155" : "#A4A8C8";
+
+const gridColor = isLight
+  ? "rgba(15,23,42,.08)"
+  : "rgba(255,255,255,.06)";
   if (state.barChart) state.barChart.destroy();
   state.barChart = new Chart(ctx, {
     type: "bar",
@@ -389,8 +465,8 @@ function renderBarChart(segArr) {
           grid: { display: false },
         },
         y: {
-          ticks: { color: "#a4a8c8" },
-          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: {color: textColor},
+          grid: { color: gridColor },
         },
       },
     },
@@ -399,6 +475,13 @@ function renderBarChart(segArr) {
 
 function renderScatter(customers) {
   const ctx = document.getElementById("scatter");
+  const isLight = document.body.classList.contains("light-mode");
+
+const textColor = isLight ? "#334155" : "#A4A8C8";
+
+const gridColor = isLight
+  ? "rgba(15,23,42,.08)"
+  : "rgba(255,255,255,.06)";
   if (state.scatterChart) state.scatterChart.destroy();
   const grouped = {};
   customers.forEach((c) => {
@@ -436,18 +519,18 @@ function renderScatter(customers) {
           title: {
             display: true,
             text: "Days since last order",
-            color: "#a4a8c8",
+            color: textColor,
           },
-          ticks: { color: "#a4a8c8" },
-          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: { color: textColor, },
+          grid: {  color: gridColor },
         },
         y: {
           title: { display: true, text: "Spend ($)", color: "#a4a8c8" },
           ticks: {
-            color: "#a4a8c8",
+            color: textColor,
             callback: (v) => "$" + (v / 1000).toFixed(0) + "k",
           },
-          grid: { color: "rgba(255,255,255,0.06)" },
+          grid: { color: gridColor },
         },
       },
     },
@@ -549,17 +632,25 @@ function exportCsv() {
   a.click();
   URL.revokeObjectURL(a.href);
 }
-
 const themeBtn = document.getElementById("themeToggle");
 
 themeBtn.addEventListener("click", () => {
-  document.body.classList.toggle("light-mode");
 
-  const isLight = document.body.classList.contains("light-mode");
+    document.body.classList.toggle("light-mode");
 
-  themeBtn.innerHTML = isLight ? "☀️" : "🌙";
+    const isLight =
+        document.body.classList.contains("light-mode");
 
-  localStorage.setItem("theme", isLight ? "light" : "dark");
+    themeBtn.innerHTML =
+        isLight ? "☀️" : "🌙";
+
+    localStorage.setItem(
+        "theme",
+        isLight ? "light" : "dark"
+    );
+
+    render();
+
 });
 
 window.addEventListener("load", () => {
@@ -721,10 +812,10 @@ async function init() {
 
   };
 
- document.getElementById(
+  document.getElementById(
     "demoBtn"
-).onclick = () =>
-    loadBackendData();
+  ).onclick = () =>
+    setData(generateDemo());
 
   document.getElementById(
     "exportBtn"
